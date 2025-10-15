@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -45,12 +44,21 @@ public class UserService {
     public User updateUser(User updatedUser){
         User foundUser = userRepository.findByUsername(updatedUser.getUsername()).orElseThrow(() -> new UsernameNotFoundException("User not found found with name " + updatedUser.getUsername()));
         foundUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        foundUser.setUsername(updatedUser.getUsername());
+        foundUser.setCity(updatedUser.getCity());
+        foundUser.setEmail(updatedUser.getEmail());
+        foundUser.setPhone(updatedUser.getPhone());
+        foundUser.setLocation(updatedUser.getLocation());
         return userRepository.save(foundUser);
     }
 
     public void deleteUser(String username){
         User foundUser = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with name " + username));
         userRepository.deleteById(foundUser.getId());
+    }
+
+    public boolean exitsByUserName(String username){
+        return userRepository.existsByUsername(username);
     }
 }
 

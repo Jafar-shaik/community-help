@@ -1,9 +1,14 @@
 package com.communityhelp.controller;
 
 import com.communityhelp.model.User;
-import com.communityhelp.repository.UserRepository;
+import com.communityhelp.service.UserService;
 import com.communityhelp.utility.JwtUtility;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,42 +16,41 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtUtility jwtUtility;
+    @Autowired
+    private UserService userService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtility jwtUtility;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    public AuthController(UserRepository userRepository,
-                          PasswordEncoder passwordEncoder,
-                          JwtUtility jwtUtility) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtility = jwtUtility;
-    }
-
-    // ✅ Register a new user
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
+        if (userService.exitsByUserName(user.getUsername())) {
             return ResponseEntity.badRequest().body("Username already exists");
         }
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        User savedUser = userRepository.save(user);
+        User savedUser = userService.registerUser(user);
         return ResponseEntity.ok(savedUser);
     }
 
-    // ✅ Login using username
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginUser) {
-        User user = userRepository.findByUsername(loginUser.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginUser.getUsername(),
+                            loginUser.getPassword()
+                    )
+            );
 
-        if (!passwordEncoder.matches(loginUser.getPassword(), user.getPassword())) {
+            // If successful
+            String token = jwtUtility.generateToken(loginUser.getUsername());
+            return ResponseEntity.ok(token);
+
+        } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body("Invalid credentials");
         }
-
-        String token = jwtUtility.generateToken(user.getUsername());
-        return ResponseEntity.ok(token); // return JWT as plain string
     }
 }
 

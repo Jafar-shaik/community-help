@@ -31,7 +31,7 @@ public class UserController {
         // Ensure user updates only their own account
         String loggedInUsername = authentication.getName();
         if (!loggedInUsername.equals(updatedUser.getUsername())) {
-            return ResponseEntity.status(403).build(); // Forbidden
+            return ResponseEntity.status(403).build();
         }
         User user = userService.updateUser(updatedUser);
         return ResponseEntity.ok(user);
