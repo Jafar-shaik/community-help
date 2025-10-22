@@ -1,4 +1,31 @@
+# Ignore target/build folders
 target/
+build/
+
+# IntelliJ IDEA project files
 .idea/
 *.iml
+*.iws
+*.ipr
+
+# Maven wrapper jar (optional, will be rebuilt in Docker)
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
 *.log
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Node or frontend folders if any
+node_modules/
+
+# Include source and Maven files
+!src/
+!pom.xml
+!mvnw
+!.mvn/wrapper/maven-wrapper.properties
+
+# Dockerfile should be included
+!Dockerfile

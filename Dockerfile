@@ -1,28 +1,30 @@
-# Use OpenJDK 17 lightweight image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Set working directory inside the container
+# Stage 1: build
+FROM eclipse-temurin:17-jdk-alpine AS build
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
+# Copy Maven wrapper and pom.xml first to cache dependencies
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
 
-# Copy the source code
-COPY src src
-
-# Make Maven wrapper executable
+# Give mvnw execution permissions
 RUN chmod +x mvnw
 
-# Build the Spring Boot application (skip tests for faster build)
+# Copy source code
+COPY src src
+
+# Build the JAR
 RUN ./mvnw clean package -DskipTests
 
-# Copy the generated JAR into container
-COPY target/communityhelp-0.0.1-SNAPSHOT.jar app.jar
+# Stage 2: runtime
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
 
-# Expose port (Render sets PORT via environment variable)
+# Copy the JAR from build stage
+COPY --from=build /app/target/communityhelp-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose port (Render uses $PORT)
 EXPOSE 8080
 
-# Command to run the JAR
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+# Run the app
+ENTRYPOINT ["java", "-jar", "app.jar"]
