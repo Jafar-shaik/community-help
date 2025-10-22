@@ -11,6 +11,7 @@ import java.util.List;
 public interface RequestRepository extends MongoRepository<Request, String> {
 
     List<Request> findByPostedBy(User user);
+    List<Request> findByPostedByOrAcceptedBy(User postedBy, User acceptedBy);
     List<Request> findByStatus(String status);
     List<Request> findByCategory(String category);
 }

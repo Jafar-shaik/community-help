@@ -26,16 +26,23 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserByUsername(username));
     }
 
-    @PutMapping("/update")
-    public ResponseEntity<User> updateUser(@RequestBody User updatedUser, Authentication authentication) {
-        // Ensure user updates only their own account
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(
+            @PathVariable String id,
+            @RequestBody User updatedUser,
+            Authentication authentication) {
+
         String loggedInUsername = authentication.getName();
+
+        // Optional: ensure the user updates only their own account
         if (!loggedInUsername.equals(updatedUser.getUsername())) {
             return ResponseEntity.status(403).build();
         }
-        User user = userService.updateUser(updatedUser);
+
+        User user = userService.updateUserById(id, updatedUser);
         return ResponseEntity.ok(user);
     }
+
 
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteUser(Authentication authentication) {

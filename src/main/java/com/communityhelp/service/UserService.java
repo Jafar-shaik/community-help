@@ -41,16 +41,17 @@ public class UserService {
         return foundUser;
     }
 
-    public User updateUser(User updatedUser){
-        User foundUser = userRepository.findByUsername(updatedUser.getUsername()).orElseThrow(() -> new UsernameNotFoundException("User not found found with name " + updatedUser.getUsername()));
-        foundUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-        foundUser.setUsername(updatedUser.getUsername());
-        foundUser.setCity(updatedUser.getCity());
-        foundUser.setEmail(updatedUser.getEmail());
-        foundUser.setPhone(updatedUser.getPhone());
-        foundUser.setLocation(updatedUser.getLocation());
-        return userRepository.save(foundUser);
+    public User updateUserById(String id, User updatedUser) {
+        User existing = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        existing.setUsername(updatedUser.getUsername());
+        existing.setEmail(updatedUser.getEmail());
+        existing.setPhone(updatedUser.getPhone());
+        existing.setCity(updatedUser.getCity());
+        existing.setLocation(updatedUser.getLocation());
+        return userRepository.save(existing);
     }
+
 
     public void deleteUser(String username){
         User foundUser = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found with name " + username));
@@ -59,6 +60,11 @@ public class UserService {
 
     public boolean exitsByUserName(String username){
         return userRepository.existsByUsername(username);
+    }
+
+    public User findByUserId(String userId){
+        User user = userRepository.findById(userId).orElseThrow(()-> new UsernameNotFoundException("User not found"));
+        return user;
     }
 }
 

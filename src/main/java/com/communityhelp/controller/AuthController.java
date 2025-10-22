@@ -11,9 +11,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173") // ✅ Allow frontend
 public class AuthController {
 
     @Autowired
@@ -28,10 +31,17 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody User user) {
         if (userService.exitsByUserName(user.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
+            return ResponseEntity.badRequest().body(Map.of("message", "Username already exists"));
         }
+
         User savedUser = userService.registerUser(user);
-        return ResponseEntity.ok(savedUser);
+        String token = jwtUtility.generateToken(savedUser.getUsername());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("user", savedUser);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
@@ -44,14 +54,19 @@ public class AuthController {
                     )
             );
 
-            // If successful
-            String token = jwtUtility.generateToken(loginUser.getUsername());
-            return ResponseEntity.ok(token);
+            User user = userService.getUserByUsername(loginUser.getUsername());
+            String token = jwtUtility.generateToken(user.getUsername());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("user", user);
+
+            return ResponseEntity.ok(response);
 
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(401).body("Invalid credentials");
+            return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
         }
     }
+
+
 }
-
-

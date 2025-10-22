@@ -27,6 +27,13 @@ public class RequestController {
         return ResponseEntity.ok(requestService.getAllRequests());
     }
 
+    @GetMapping("/open")
+    public ResponseEntity<List<Request>> getOpenRequests() {
+        List<Request> openRequests = requestService.getOpenRequests();
+        return ResponseEntity.ok(openRequests);
+    }
+
+
     @GetMapping("/my")
     public ResponseEntity<List<Request>> getMyRequests(Authentication authentication) {
         return ResponseEntity.ok(requestService.getMyRequests(authentication));
@@ -48,4 +55,18 @@ public class RequestController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Request>> getRequestsByUser(@PathVariable String userId) {
+        List<Request> requests = requestService.getRequestsByUser(userId);
+        return ResponseEntity.ok(requests);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRequest(@PathVariable String id, Authentication authentication) {
+        requestService.deleteRequest(id, authentication);
+        return ResponseEntity.noContent().build();
+    }
+
+
 }
